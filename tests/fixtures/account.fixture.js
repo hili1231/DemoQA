@@ -1,25 +1,24 @@
 const { randomUUID, randomBytes } = require('node:crypto');
 const assert = require('node:assert/strict');
 
-function newAccount() {
+function createAccount() {
   return {
     userName: `qa_${randomUUID().replaceAll('-', '')}`,
     password: `Qa!9${randomBytes(12).toString('hex')}`,
   };
 }
 
-async function register(api, account) {
+async function registerAccount(api, account) {
   const response = await api.post('/Account/v1/User', { data: account });
   assert.equal(response.status(), 201, 'Registration must return 201');
   const body = await response.json();
-  // Retain the identifier before subsequent assertions so teardown can run.
   account.userId = body.userID || body.userId;
   assert.ok(account.userId, 'Registration must return a user identifier');
   assert.equal(body.username, account.userName);
   assert.deepEqual(body.books, []);
 }
 
-async function tokenFor(api, account) {
+async function getToken(api, account) {
   const response = await api.post('/Account/v1/GenerateToken', {
     data: { userName: account.userName, password: account.password },
   });
@@ -32,7 +31,7 @@ async function tokenFor(api, account) {
 
 async function deleteAccount(api, account) {
   if (!account?.userId) return;
-  const token = await tokenFor(api, account);
+  const token = await getToken(api, account);
   const response = await api.delete(`/Account/v1/User/${account.userId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -42,4 +41,5 @@ async function deleteAccount(api, account) {
     'Disposable account cleanup must return 204',
   );
 }
-module.exports = { newAccount, register, deleteAccount };
+
+module.exports = { createAccount, registerAccount, deleteAccount };

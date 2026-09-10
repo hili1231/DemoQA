@@ -7,10 +7,9 @@ const {
   setDefaultTimeout,
 } = require('@cucumber/cucumber');
 const playwright = require('playwright');
-const { devices } = playwright;
 const { randomUUID } = require('node:crypto');
-const config = require('./config');
-const { deleteAccount } = require('./account');
+const config = require('./test-config');
+const { deleteAccount } = require('../fixtures/account.fixture');
 let browser;
 setDefaultTimeout(60_000);
 BeforeAll(async function () {
@@ -21,9 +20,10 @@ BeforeAll(async function () {
 Before(async function () {
   this.context = await browser.newContext({
     baseURL: config.baseURL,
-    ...(config.mobile
-      ? devices['Pixel 5']
-      : { viewport: { width: 1440, height: 1000 } }),
+    viewport: config.viewport,
+    ...(config.mobile && config.browserName !== 'firefox'
+      ? { hasTouch: true, isMobile: true }
+      : {}),
   });
   this.context.setDefaultTimeout(config.timeout);
   this.context.setDefaultNavigationTimeout(30_000);

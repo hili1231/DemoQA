@@ -2,8 +2,8 @@ const fs = require('node:fs');
 fs.mkdirSync('reports', { recursive: true });
 module.exports = {
   default: {
-    paths: ['web/features/**/*.feature'],
-    require: ['web/support/**/*.js', 'web/steps/**/*.js'],
+    paths: ['tests/features/**/*.feature'],
+    require: ['tests/support/**/*.js', 'tests/step-definitions/**/*.js'],
     format: [
       'progress',
       'html:reports/cucumber.html',

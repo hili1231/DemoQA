@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  checks: write
 jobs:
   javascript:
     runs-on: ubuntu-latest
@@ -14,15 +15,44 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm }
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
+      - name: Run Karate API tests
+        run: npm run test:api
       - run: npx playwright install --with-deps chromium
-      - run: REGISTRATION_MODE=api npm run test:web
+      - name: Run Playwright Web tests
+        run: npm run test:web
         env:
           BASE_URL: https://demoqa.com
+          REGISTRATION_MODE: api
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cucumber-reports
           path: reports/
+          if-no-files-found: warn
+      - name: Publish Cucumber report summary
+        if: always()
+        run: |
+          if [ -f reports/cucumber.html ]; then
+            {
+              echo '## Cucumber report'
+              echo
+              echo 'HTML, JSON and JUnit reports are available in the cucumber-reports workflow artifact.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Cucumber report was not generated.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish Cucumber test results
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Cucumber tests
+          path: reports/cucumber.xml
+          reporter: java-junit
+          fail-on-error: false

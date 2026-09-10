@@ -1,9 +1,10 @@
-@web @smoke @collection
-Feature: Manage a personal book collection
-  A registered reader can find, keep and remove a book.
-  Registration is through the UI by default; API setup is an explicit alternative.
+@web @smoke @single-flow
+Feature: Book Store single end-to-end flow
+  As a reader
+  I want to register, log in, search for a book, add it to my collection,
+  verify my collection, delete the book, and log out.
 
-  Scenario: Register, log in, add and remove a book, then log out
+  Scenario: Complete reader single flow
     Given I register a unique reader
     When I log in to the bookstore
     And I search for "Git Pocket Guide"
@@ -13,3 +14,4 @@ Feature: Manage a personal book collection
     Then my collection is empty after a reload
     When I log out
     Then I cannot view my collection without logging in
+

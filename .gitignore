@@ -1,6 +1,8 @@
 node_modules/
 reports/
 test-results/
+target/
+karate.jar
 .env
 .env.*
 !.env.example
