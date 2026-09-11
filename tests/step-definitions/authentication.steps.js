@@ -66,12 +66,6 @@ When('I log in to the bookstore', async function () {
   await expect(this.page).toHaveURL(/\/profile(?:\?.*)?$/);
 });
 
-Then('I see my reader profile', async function () {
-  await expect(this.page.locator('#userName-value')).toHaveText(
-    this.account.userName,
-  );
-});
-
 When('I log out', async function () {
   await this.page.getByRole('button', { name: /log\s*out/i }).click();
   await expect(this.page).toHaveURL(/\/login$/);

@@ -26,13 +26,13 @@ This skill provides the authoritative procedures, architecture patterns, and str
 │   ├── fixtures/
 │   │   └── account.fixture.js      # Disposable user generation & API teardown
 │   ├── step-definitions/
-│   │   ├── authentication.steps.js # Auth step bindings
-│   │   ├── book-collection.steps.js# Collection step bindings
-│   │   └── book-search.steps.js    # Catalog & search step bindings
+│   │   ├── authentication.steps.js # Auth & session step bindings
+│   │   └── book-collection.steps.js# Search, collection, and deletion step bindings
 │   └── support/
 │       ├── hooks.js                # Playwright lifecycle, tracing, failure screenshots
 │       ├── run-karate.js           # Automated runner for Karate standalone JAR
 │       └── test-config.js          # Environment, baseUrl, and browser launch options
+├── AGENTS.md                       # Project rules & guidelines
 ├── cucumber.js                     # Cucumber CLI execution and reporting configuration
 ├── eslint.config.js                # ESLint 9 configuration
 └── package.json

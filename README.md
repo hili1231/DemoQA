@@ -4,14 +4,12 @@
 
 End-to-end automated test suites for [DemoQA Book Store](https://demoqa.com/books) and its [Swagger API](https://demoqa.com/swagger), using **Playwright with Cucumber** for web browser automation and **Karate** for API test automation.
 
-Both suites validate the required single continuous flow:
-
 > 📄 **Senior QA Engineer Assessment Deliverables**:
 >
 > - **[Full Written Assessment Submission (Parts 1, 2, & 3)](./SENIOR_QA_ENGINEER_ASSESSMENT.md)**: Complete responses covering QA Strategy (1.1), Bookstore Test Plan (1.2 Task A), Mentoring & Code Review (2.1), and Multi-Currency FX Settlement Strategy (Part 3).
 > - **[Bookstore Test Plan Document](./TEST_PLAN.md)**: Standalone test matrix, error conditions, and automation specifications.
 
-Both test suites validate the required single continuous flow:
+Both suites validate the required single continuous flow:
 
 1. **Register & login**
 2. **Search and add book to collection**
@@ -53,11 +51,6 @@ npm run test:web
 
 # Run only the single end-to-end flow
 npx cucumber-js --tags "@single-flow"
-
-# Run specific domain areas
-npx cucumber-js --tags "@authentication"
-npx cucumber-js --tags "@book-search"
-npx cucumber-js --tags "@book-collection"
 
 # Dry run to validate step bindings
 npm run test:web:dry
@@ -113,25 +106,29 @@ npm run format
 ## Project Structure
 
 ```
+├── .agents/
+│   └── skills/
+│       └── demoqa-automation/
+│           └── SKILL.md            # Antigravity skill specification
 ├── .github/workflows/
-│   └── quality.yml             # GitHub Actions CI (Node 24, Java 21, Playwright & Karate)
+│   └── quality.yml                 # GitHub Actions CI (Node 24, Java 21, Playwright & Karate)
 ├── tests/
 │   ├── api/
-│   │   └── book-flow.feature   # Karate API end-to-end flow
+│   │   └── book-flow.feature       # Karate API end-to-end flow
 │   ├── features/
 │   │   └── book-store-flow.feature # Single continuous E2E web flow
 │   ├── fixtures/
-│   │   └── account.fixture.js  # Disposable account generation and cleanup
+│   │   └── account.fixture.js      # Disposable account generation and cleanup
 │   ├── step-definitions/
-│   │   ├── authentication.steps.js
-│   │   ├── book-collection.steps.js
-│   │   └── book-search.steps.js
+│   │   ├── authentication.steps.js # Auth & session step bindings
+│   │   └── book-collection.steps.js# Search, collection, and deletion step bindings
 │   └── support/
-│       ├── hooks.js            # Playwright lifecycle, tracing, failure screenshot
-│       ├── run-karate.js       # Automated runner for Karate standalone JAR
-│       └── test-config.js      # Environment and browser options
-├── cucumber.js                 # Cucumber execution and reporting configuration
-├── eslint.config.js            # ESLint 9 configuration
+│       ├── hooks.js                # Playwright lifecycle, tracing, failure screenshot
+│       ├── run-karate.js           # Automated runner for Karate standalone JAR
+│       └── test-config.js          # Environment and browser options
+├── AGENTS.md                       # Project rules & guidelines
+├── cucumber.js                     # Cucumber execution and reporting configuration
+├── eslint.config.js                # ESLint 9 configuration
 └── package.json
 ```
 

@@ -282,9 +282,8 @@ tests/
 ├── fixtures/
 │   └── account.fixture.js       # Disposable account generator & API cleanup
 ├── step-definitions/
-│   ├── authentication.steps.js  # Resilient logout and profile locators
-│   ├── book-collection.steps.js # Modal `#closeSmallModal-ok` & table verification
-│   └── book-search.steps.js     # Catalog search bindings
+│   ├── authentication.steps.js  # Registration, login, logout, and unauthenticated assertions
+│   └── book-collection.steps.js # Search, collection add/verify, and modal delete (`#closeSmallModal-ok`)
 └── support/
     ├── hooks.js                 # Browser context, tracing, screenshot on failure
     └── test-config.js           # Cross-browser & mobile viewport options
