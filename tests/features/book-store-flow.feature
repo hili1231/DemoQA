@@ -14,4 +14,3 @@ Feature: Book Store single end-to-end flow
     Then my collection is empty after a reload
     When I log out
     Then I cannot view my collection without logging in
-
