@@ -9,7 +9,7 @@
   "scripts": {
     "test": "npm run test:all",
     "test:all": "npm run test:api && npm run test:web",
-    "test:api": "node scripts/run-karate.js",
+    "test:api": "node tests/support/run-karate.js",
     "test:web": "cucumber-js",
     "test:web:dry": "cucumber-js --dry-run --format progress",
     "lint": "eslint .",

@@ -5,8 +5,10 @@ const { spawnSync } = require('node:child_process');
 
 const KARATE_VERSION = '1.4.1';
 const KARATE_JAR_URL = `https://github.com/karatelabs/karate/releases/download/v${KARATE_VERSION}/karate-${KARATE_VERSION}.jar`;
-const JAR_PATH = path.resolve(__dirname, '..', 'karate.jar');
-const REPORTS_DIR = path.resolve(__dirname, '..', 'reports', 'karate');
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
+const JAR_PATH = path.resolve(PROJECT_ROOT, 'karate.jar');
+const REPORTS_DIR = path.resolve(PROJECT_ROOT, 'reports', 'karate');
+const FEATURE_PATH = path.resolve(PROJECT_ROOT, 'tests', 'api');
 
 function download(url, dest) {
   return new Promise((resolve, reject) => {
@@ -51,15 +53,14 @@ async function main() {
 
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
 
-  const featurePath = path.resolve(__dirname, '..', 'tests', 'api');
-  console.log(`Running Karate API tests from ${featurePath}...`);
+  console.log(`Running Karate API tests from ${FEATURE_PATH}...`);
 
   const result = spawnSync(
     'java',
-    ['-jar', JAR_PATH, featurePath, '-o', REPORTS_DIR],
+    ['-jar', JAR_PATH, FEATURE_PATH, '-o', REPORTS_DIR],
     {
       stdio: 'inherit',
-      cwd: path.resolve(__dirname, '..'),
+      cwd: PROJECT_ROOT,
     },
   );
 
@@ -72,4 +73,8 @@ async function main() {
   process.exit(result.status ?? 0);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { main };
