@@ -119,10 +119,7 @@ npm run format
 │   ├── api/
 │   │   └── book-flow.feature   # Karate API end-to-end flow
 │   ├── features/
-│   │   ├── book-store-flow.feature # Single continuous E2E web flow
-│   │   ├── authentication.feature  # Authentication scenario
-│   │   ├── book-collection.feature # Collection management scenario
-│   │   └── book-search.feature     # Catalog search scenario
+│   │   └── book-store-flow.feature # Single continuous E2E web flow
 │   ├── fixtures/
 │   │   └── account.fixture.js  # Disposable account generation and cleanup
 │   ├── step-definitions/

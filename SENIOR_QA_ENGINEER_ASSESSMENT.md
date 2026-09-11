@@ -278,10 +278,7 @@ tests/
 ├── api/
 │   └── book-flow.feature        # Karate BDD API implementation (5 steps)
 ├── features/
-│   ├── book-store-flow.feature  # Playwright BDD Single E2E Web Flow (5 steps)
-│   ├── authentication.feature   # Modular feature
-│   ├── book-collection.feature  # Modular feature
-│   └── book-search.feature      # Modular feature
+│   └── book-store-flow.feature  # Playwright BDD Single E2E Web Flow (5 steps)
 ├── fixtures/
 │   └── account.fixture.js       # Disposable account generator & API cleanup
 ├── step-definitions/

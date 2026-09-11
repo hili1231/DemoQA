@@ -22,10 +22,7 @@ This skill provides the authoritative procedures, architecture patterns, and str
 │   ├── api/
 │   │   └── book-flow.feature       # Karate API end-to-end flow (Swagger contract)
 │   ├── features/
-│   │   ├── book-store-flow.feature # Single continuous E2E web flow
-│   │   ├── authentication.feature  # Isolated auth scenarios
-│   │   ├── book-collection.feature # Isolated collection management
-│   │   └── book-search.feature     # Isolated search scenarios
+│   │   └── book-store-flow.feature # Single continuous E2E web flow (assignment requirement)
 │   ├── fixtures/
 │   │   └── account.fixture.js      # Disposable user generation & API teardown
 │   ├── step-definitions/
