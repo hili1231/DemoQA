@@ -1,6 +1,6 @@
 # Antigravity Rules: DemoQA Playwright & Karate Automation
 
-Refer to [AGENTS.md](./AGENTS.md) and the project skill at [.agents/skills/demoqa-automation/SKILL.md](./.agents/skills/demoqa-automation/SKILL.md) for full guidelines.
+Refer to project skill at [.agents/skills/demoqa-automation/SKILL.md](./.agents/skills/demoqa-automation/SKILL.md) for full guidelines.
 
 ## Quick Summary of Rules
 

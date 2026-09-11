@@ -4,11 +4,6 @@
 
 End-to-end automated test suites for [DemoQA Book Store](https://demoqa.com/books) and its [Swagger API](https://demoqa.com/swagger), using **Playwright with Cucumber** for web browser automation and **Karate** for API test automation.
 
-> 📄 **Senior QA Engineer Assessment Deliverables**:
->
-> - **[Full Written Assessment Submission (Parts 1, 2, & 3)](./SENIOR_QA_ENGINEER_ASSESSMENT.md)**: Complete responses covering QA Strategy (1.1), Bookstore Test Plan (1.2 Task A), Mentoring & Code Review (2.1), and Multi-Currency FX Settlement Strategy (Part 3).
-> - **[Bookstore Test Plan Document](./TEST_PLAN.md)**: Standalone test matrix, error conditions, and automation specifications.
-
 Both suites validate the required single continuous flow:
 
 1. **Register & login**
