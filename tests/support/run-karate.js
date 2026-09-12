@@ -57,7 +57,16 @@ async function main() {
 
   const result = spawnSync(
     'java',
-    ['-jar', JAR_PATH, FEATURE_PATH, '-o', REPORTS_DIR],
+    [
+      '-jar',
+      JAR_PATH,
+      FEATURE_PATH,
+      '-o',
+      REPORTS_DIR,
+      '-f',
+      'html,junit:xml',
+      '-C',
+    ],
     {
       stdio: 'inherit',
       cwd: PROJECT_ROOT,

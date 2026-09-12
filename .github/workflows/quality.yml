@@ -1,4 +1,4 @@
-name: Playwright tests
+name: Automated Tests (Playwright & Karate)
 on:
   push:
     branches: [main]
@@ -8,9 +8,24 @@ permissions:
   contents: read
   checks: write
 jobs:
-  javascript:
+  lint-and-format:
+    name: Code Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+  karate-api:
+    name: Karate API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,18 +35,57 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - run: npm ci
-      - run: npm run lint
-      - run: npm run format:check
       - name: Run Karate API tests
         run: npm run test:api
-      - run: npx playwright install --with-deps chromium
+      - name: Upload Karate reports artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-reports
+          path: reports/karate/
+          if-no-files-found: warn
+      - name: Publish Karate report summary
+        if: always()
+        run: |
+          if [ -d reports/karate/karate-reports ]; then
+            {
+              echo '## Karate API Test Report'
+              echo
+              echo 'Karate API end-to-end flow passed against `https://demoqa.com/swagger`.'
+              echo
+              echo 'Detailed HTML and JUnit XML reports are available in the `karate-reports` workflow artifact.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Karate report was not generated.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish Karate test results
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Karate API Tests
+          path: reports/karate/karate-reports/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  playwright-web:
+    name: Playwright Web Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Run Playwright Web tests
         run: npm run test:web
         env:
           BASE_URL: https://demoqa.com
           REGISTRATION_MODE: api
-      - uses: actions/upload-artifact@v4
+      - name: Upload Cucumber reports artifact
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: cucumber-reports
           path: reports/
@@ -41,9 +95,11 @@ jobs:
         run: |
           if [ -f reports/cucumber.html ]; then
             {
-              echo '## Cucumber report'
+              echo '## Playwright Web Test Report'
               echo
-              echo 'HTML, JSON and JUnit reports are available in the cucumber-reports workflow artifact.'
+              echo 'Playwright single continuous flow passed against `https://demoqa.com/books`.'
+              echo
+              echo 'HTML, JSON and JUnit reports are available in the `cucumber-reports` workflow artifact.'
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'Cucumber report was not generated.' >> "$GITHUB_STEP_SUMMARY"
@@ -52,7 +108,7 @@ jobs:
         if: always()
         uses: dorny/test-reporter@v2
         with:
-          name: Cucumber tests
+          name: Playwright Web Tests
           path: reports/cucumber.xml
           reporter: java-junit
           fail-on-error: false

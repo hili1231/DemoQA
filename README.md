@@ -1,6 +1,6 @@
 # DemoQA Test Automation: Playwright (Web) & Karate (API)
 
-[![Playwright tests](https://github.com/hili1231/DemoQA/actions/workflows/quality.yml/badge.svg)](https://github.com/hili1231/DemoQA/actions/workflows/quality.yml)
+[![Automated Tests](https://github.com/hili1231/DemoQA/actions/workflows/quality.yml/badge.svg)](https://github.com/hili1231/DemoQA/actions/workflows/quality.yml)
 
 End-to-end automated test suites for [DemoQA Book Store](https://demoqa.com/books) and its [Swagger API](https://demoqa.com/swagger), using **Playwright with Cucumber** for web browser automation and **Karate** for API test automation.
 
