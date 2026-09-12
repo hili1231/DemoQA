@@ -16,7 +16,7 @@ const JAR_PATH = path.resolve(
   `karate-${KARATE_VERSION}.jar`,
 );
 const REPORTS_DIR = path.resolve(PROJECT_ROOT, 'reports', 'karate');
-const FEATURE_PATH = path.resolve(PROJECT_ROOT, 'tests', 'api');
+const FEATURE_PATH = path.resolve(PROJECT_ROOT, 'tests', 'features', 'api');
 
 async function verifyJar(file) {
   const hash = createHash('sha256');

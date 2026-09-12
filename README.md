@@ -119,10 +119,11 @@ npm run format
 ├── .github/workflows/
 │   └── quality.yml                 # GitHub Actions CI (Node 24, Java 21, Playwright & Karate)
 ├── tests/
-│   ├── api/
-│   │   └── book-flow.feature       # Karate API end-to-end flow
 │   ├── features/
-│   │   └── book-store-flow.feature # Single continuous E2E web flow
+│   │   ├── web/
+│   │   │   └── book-store-flow.feature # Single continuous E2E web flow
+│   │   └── api/
+│   │       └── book-flow.feature   # Karate API end-to-end flow
 │   ├── fixtures/
 │   │   └── account.fixture.js      # Disposable account generation and cleanup
 │   ├── step-definitions/

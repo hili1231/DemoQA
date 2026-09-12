@@ -9,13 +9,13 @@ Use this skill when working on the repository's automation, fixtures, runners, r
 
 ## Framework structure
 
-- `tests/features/`: Cucumber business scenarios. Keep each scenario independent; retain the existing complete reader journey when extending coverage.
+- `tests/features/web/`: Cucumber business scenarios. Keep each scenario independent; retain the existing complete reader journey when extending coverage.
 - `tests/step-definitions/`: Reusable Cucumber bindings with observable assertions. Keep lifecycle work in support code and account operations in fixtures.
 - `tests/fixtures/account.fixture.js`: Unique web-test credentials, API-assisted registration, and account deletion.
 - `tests/support/hooks.js`: Browser/context lifecycle, screenshots, optional traces, and failure-safe teardown.
 - `tests/support/browser-actions.js`: Scoped dialog handling and exact response matching.
 - `tests/support/test-config.js`: Validated configuration and project-root `.env` loading.
-- `tests/api/`: Karate business scenarios using native HTTP and assertion DSL.
+- `tests/features/api/`: Karate business scenarios using native HTTP and assertion DSL.
 - `tests/support/karate-config.js`: Karate configuration and scenario lifecycle hook registration.
 - `tests/support/karate-cleanup.js`: API account teardown through Karate's HTTP client. This repository keeps cleanup in support code rather than feature files.
 - `tests/support/run-karate.js`: Versioned, verified JAR acquisition and Java execution.
