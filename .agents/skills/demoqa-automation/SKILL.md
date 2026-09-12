@@ -1,132 +1,79 @@
 ---
 name: demoqa-automation
-description: Run, maintain, debug, and author Playwright web and Karate API test automation flows for the DemoQA bookstore application following the project's strict architecture and testing rules.
+description: Build, extend, review, and debug this repository's Playwright/Cucumber web automation and Karate API automation using maintainable QA framework practices.
 ---
 
-# DemoQA Automation Skill
+# DemoQA automation
 
-This skill provides the authoritative procedures, architecture patterns, and strict quality rules for the DemoQA Book Store test automation framework. It encompasses **Playwright (Web)** browser automation with Cucumber BDD and **Karate (API)** contract testing against Swagger endpoints.
+Use this skill when working on the repository's automation, fixtures, runners, reporting, or CI. Read the relevant implementation and package versions before changing behavior. Keep changes proportional to the user's request; support additional scenarios and data sets when requested without imposing a scenario-count limit.
 
----
+## Framework structure
 
-## 1. Project Architecture & File Mapping
+- `tests/features/`: Cucumber business scenarios. Keep each scenario independent; retain the existing complete reader journey when extending coverage.
+- `tests/step-definitions/`: Reusable Cucumber bindings with observable assertions. Keep lifecycle work in support code and account operations in fixtures.
+- `tests/fixtures/account.fixture.js`: Unique web-test credentials, API-assisted registration, and account deletion.
+- `tests/support/hooks.js`: Browser/context lifecycle, screenshots, optional traces, and failure-safe teardown.
+- `tests/support/browser-actions.js`: Scoped dialog handling and exact response matching.
+- `tests/support/test-config.js`: Validated configuration and project-root `.env` loading.
+- `tests/api/`: Karate business scenarios using native HTTP and assertion DSL.
+- `tests/support/karate-config.js`: Karate configuration and scenario lifecycle hook registration.
+- `tests/support/karate-cleanup.js`: API account teardown through Karate's HTTP client. This repository keeps cleanup in support code rather than feature files.
+- `tests/support/run-karate.js`: Versioned, verified JAR acquisition and Java execution.
+- `tests/support/generate-summary.js`: CI summaries derived from execution reports.
+- `cucumber.js`, `eslint.config.js`, `.github/workflows/quality.yml`: Discovery, quality checks, and CI.
 
-```
-├── .agents/
-│   └── skills/
-│       └── demoqa-automation/
-│           └── SKILL.md            # This skill specification
-├── .github/workflows/
-│   └── quality.yml                 # CI workflow (Node 24, Java 21, Playwright & Karate)
-├── tests/
-│   ├── api/
-│   │   └── book-flow.feature       # Karate API end-to-end flow (Swagger contract)
-│   ├── features/
-│   │   └── book-store-flow.feature # Single continuous E2E web flow (assignment requirement)
-│   ├── fixtures/
-│   │   └── account.fixture.js      # Disposable user generation & API teardown
-│   ├── step-definitions/
-│   │   ├── authentication.steps.js # Auth & session step bindings
-│   │   └── book-collection.steps.js# Search, collection, and deletion step bindings
-│   └── support/
-│       ├── hooks.js                # Playwright lifecycle, tracing, failure screenshots
-│       ├── run-karate.js           # Automated runner for Karate standalone JAR
-│       └── test-config.js          # Environment, baseUrl, and browser launch options
-├── AGENTS.md                       # Project rules & guidelines
-├── cucumber.js                     # Cucumber CLI execution and reporting configuration
-├── eslint.config.js                # ESLint 9 configuration
-└── package.json
-```
+Place helper utilities in `tests/support/`; introduce further abstractions only when reuse or complexity justifies them. Guard standalone Node entry points with `require.main === module`. Karate's GraalJS function files are not Node modules; keep their lint globals scoped to those files. Cucumber must require only hooks and step definitions, never every support script.
 
----
+## Scenario design and assertions
 
-## 2. Command Reference
+- Use business-readable steps with explicit outcomes. Add cases, outlines, and tags according to the requested coverage; avoid order dependencies and shared mutable accounts.
+- Parameterize expected book data rather than embedding one book's author in a generic search binding.
+- Assert persisted state after mutations, including both relevant API data and visible UI results for the web flow. Keep API-assisted setup distinguishable from UI coverage.
+- Verify exact documented HTTP statuses, meaningful response fields, collection membership/cardinality, and authorization behavior. Confirm content type before assuming a response is parsed JSON.
+- Do not weaken assertions, add broad retries, or skip a failing scenario simply to obtain green results. Distinguish an application failure from test-code and environment failures.
+- Preserve the distinction between UI logout and an API request without authorization. DemoQA's API has no logout endpoint; a 401 without a token does not prove token revocation.
 
-| Task                 | Command                | Purpose                                                        |
-| :------------------- | :--------------------- | :------------------------------------------------------------- |
-| **Run All Tests**    | `npm test`             | Executes both Karate API and Playwright Web suites in sequence |
-| **Run API Tests**    | `npm run test:api`     | Executes Karate standalone JAR against `tests/api/`            |
-| **Run Web Tests**    | `npm run test:web`     | Executes Playwright Web scenarios via Cucumber                 |
-| **Web Dry Run**      | `npm run test:web:dry` | Verifies Cucumber step bindings without launching browsers     |
-| **Lint Code**        | `npm run lint`         | Runs ESLint 9 with recommended JavaScript rules                |
-| **Check Formatting** | `npm run format:check` | Verifies file formatting with Prettier                         |
-| **Auto-format**      | `npm run format`       | Applies Prettier formatting across the codebase                |
+## Playwright practices
 
----
+- Prefer roles, labels, placeholders, and stable visible text. Scope ambiguous locators to the relevant row or dialog. A stable application-specific selector is acceptable when accessible locators cannot identify the control reliably.
+- Use Playwright's waiting assertions and response/event synchronization. Register response waits before actions; match the exact pathname and HTTP method.
+- Use no fixed sleeps to synchronize the UI. A bounded timeout for a missing event is a failure deadline, not a synchronization delay.
+- Accept or dismiss native dialogs while the triggering action is still executing. Capture the message for assertions afterward, observe concurrent promise rejections, and remove scoped listeners on failure.
+- Wait for collection loading to complete before asserting an empty table; zero rows during loading is not evidence of an empty collection. Check the current DOM before assuming a table structure.
+- Use separate contexts and unique accounts for scenarios. Avoid reusable authenticated state tied to an account that another scenario deletes.
+- Unattended registration uses the API because the public register page has reCAPTCHA. Attended UI mode requires an interactive browser and a bounded opportunity for the user to complete it; do not bypass CAPTCHA or claim unattended UI registration coverage.
 
-## 3. Strict Rules & Best Practices
+## Data isolation and teardown
 
-### 3.1 Web Automation Rules (Playwright + Cucumber)
+- Generate unique usernames and valid random passwords. Record a returned user ID before later response assertions so cleanup remains possible after partial success.
+- Run account cleanup on pass and failure. Handle scenarios that fail before registration or token acquisition, and attempt context disposal even when screenshots, traces, or diagnostic attachments fail.
+- Keep teardown failures visible and include a recoverable account identifier without exposing passwords or tokens. Retain the original scenario failure alongside cleanup diagnostics.
+- Check lifecycle failure semantics against the installed Karate version. In 1.4.1, an exception in `afterScenario` is logged rather than propagated as a scenario failure; preserve the runner's cleanup-error check and summary warning until an upgrade demonstrably replaces it.
+- Keep per-scenario data and error markers isolated if parallel execution is added. Avoid automatically retrying non-idempotent registration or mutation requests.
 
-1. **Prioritize Resilient, User-Facing Locators**:
-   - Use `page.getByRole()`, `page.getByLabel()`, `page.getByPlaceholder()`, or `page.getByText()`.
-   - Avoid brittle implementation-bound selectors (`div > div:nth-child(2) > span`).
-2. **Handle Strict Mode Disambiguation**:
-   - DemoQA UI contains overlapping button text (e.g. "OK" occurs within "Go To Book Store", "Delete All Books", and the delete confirmation dialog).
-   - Target unambiguous modal selectors such as `#closeSmallModal-ok` for modal confirmation.
-3. **No Hardcoded Sleep Statements**:
-   - **Never** use `page.waitForTimeout()` or fixed timer delays.
-   - Rely on Playwright auto-waiting assertions (`expect(locator).toBeVisible()`) and network synchronization (`page.waitForResponse()`).
-4. **Dialog Handling Pre-Registration**:
-   - DemoQA triggers native browser `window.alert` and `window.confirm` dialogs on book addition and deletion.
-   - **Always** register the dialog event handler (`page.once('dialog', async dialog => await dialog.accept())`) **before** clicking the button that triggers the dialog.
-5. **Dynamic Account Isolation & Cleanup**:
-   - Never share static test user accounts. Every scenario must generate a unique disposable account (`user_${uuid}`).
-   - Register the disposable account during setup and ensure teardown (`deleteAccount(user.userId, user.token)`) executes in `After` hooks, even if the scenario fails.
-6. **Case-Insensitive Text & Regex Matching**:
-   - DemoQA buttons and messages frequently alter casing or spacing across releases (e.g. "Logout" vs "Log out"). Use regular expressions: `getByRole('button', { name: /log\s*out/i })`.
-7. **Table & Empty-State Structure**:
-   - DemoQA renders book rows in a standard HTML `<table>`. Verify empty state using `expect(page.locator('tbody tr')).toHaveCount(0)`, not obsolete ReactTable classes like `.rt-noData`.
+## Karate and runner practices
 
-### 3.2 API Automation Rules (Karate Framework)
+- Use native Karate request/status/match steps for API behavior. Use quoted embedded expressions in JSON, for example `{ userId: '#(userId)' }`. Do not bind Karate scenarios to Cucumber JavaScript steps.
+- Use lifecycle support code for cleanup, with explicit HTTP status checks and bounded network timeouts. Java interop in the lifecycle helper is separate from the business-flow DSL.
+- Both suites must target the same configured `BASE_URL`. Load `.env` relative to the project root; environment variables take precedence. Validate settings before creating accounts or launching browsers.
+- Pin the runner version and trusted checksum. Download to a temporary file, verify it, then promote it to the versioned cache; verify cached files before execution. Update the version and checksum together using the official release artifact.
+- Propagate missing-runtime errors, child exit failures, signals, and cleanup failures as unsuccessful runs. Never map a missing exit status to success.
+- Preserve TLS verification. Resolve local certificate trust through the runtime's trust configuration instead of disabling certificate checks.
 
-1. **Native Karate DSL Only**:
-   - Use native Karate keywords: `url`, `path`, `request`, `method`, `status`, `match`.
-   - Do **not** mix Cucumber JavaScript step definitions with Karate `.feature` files.
-2. **Quoted Embedded Variable Syntax**:
-   - In JSON request bodies, always enclose embedded variables in quotes:
-     ```cucumber
-     And request { userName: '#(username)', password: '#(password)' }
-     ```
-     Unquoted `#(username)` is invalid JSON in Karate and causes syntax evaluation failures.
-3. **Dynamic UUID Generation via Java Interop**:
-   - Generate unique usernames and valid passwords using Java utilities directly in Karate `Background`:
-     ```cucumber
-     * def uuid = java.util.UUID.randomUUID() + ''
-     * def username = 'user_' + uuid.substring(0, 8)
-     * def password = 'Password123!'
-     ```
-4. **Exact HTTP Status Verification**:
-   - Verify explicit HTTP status codes matching the Swagger contract:
-     - `201 Created`: User registration (`POST /Account/v1/User`), Book addition (`POST /BookStore/v1/Books`).
-     - `200 OK`: Token generation (`POST /Account/v1/GenerateToken`), Book catalog query (`GET /BookStore/v1/Books`), User profile query (`GET /Account/v1/User/{userId}`).
-     - `204 No Content`: Book deletion (`DELETE /BookStore/v1/Book`), User deletion (`DELETE /Account/v1/User/{userId}`).
-     - `401 Unauthorized`: Unauthenticated request verification (`GET /Account/v1/User/{userId}`).
+## Reporting and validation
 
-### 3.3 Test Support & Script Location Rules
+- Report actual execution status: failed, undefined, ambiguous, pending, skipped, and unknown must not become passed. Include hook failures and scenario outlines; distinguish hook counts from business-step counts.
+- Dry runs validate discovery/bindings only and must not replace real-run reports. Missing or empty reports are not evidence of success.
+- Keep credentials and optional traces out of version control. Avoid echoing tokens/passwords in diagnostics; review artifact content and retention when changing reporting.
+- Run checks appropriate to the change: `npm run lint`, `npm run format:check`, `npm run test:web:dry`, and the affected existing suites (`npm run test:web`, `npm run test:api`, or `npm test`). Do not add tests solely because a review was requested; follow the user's requested scope.
+- Explain what changed, what was actually executed, and any remaining limitation. Existing reports are historical evidence, not proof of a new run. Confirm the working-tree diff before finishing.
+- When updating the skill itself, validate its frontmatter and ensure file references and version-specific guidance still match the repository.
 
-1. **Location of Scripts**:
-   - All helper scripts must reside in `tests/support/` (e.g. `tests/support/run-karate.js`).
-   - Do not re-create a standalone `scripts/` directory.
-2. **Main Module Guarding**:
-   - Any standalone Node.js utility in `tests/support/` must be guarded with:
-     ```javascript
-     if (require.main === module) {
-       main();
-     }
-     ```
-   - This prevents unintended execution when modules are required or imported.
-3. **Cucumber Configuration Scoping**:
-   - In `cucumber.js`, explicitly require only hook and step files (`require: ['tests/support/hooks.js', 'tests/step-definitions/**/*.js']`) to prevent Cucumber from evaluating non-Cucumber support scripts during startup.
+## Primary references
 
----
+- [Playwright dialogs](https://playwright.dev/docs/dialogs)
+- [Playwright best practices](https://playwright.dev/docs/best-practices)
+- [Karate 1.4.1 documentation and hooks](https://github.com/karatelabs/karate/blob/v1.4.1/README.md#hooks)
+- [Karate 1.4.1 HTTP client](https://github.com/karatelabs/karate/blob/v1.4.1/karate-core/src/main/java/com/intuit/karate/Http.java)
 
-## 4. Single Continuous E2E Flow Specification
-
-Both Web and API test suites must automate the single 5-step flow:
-
-1. **Register & Login**: Register disposable user $\rightarrow$ authenticate and obtain authorization token $\rightarrow$ log into bookstore.
-2. **Search & Add Book**: Search catalog for target title (`"Git Pocket Guide"`, ISBN `9781449325862`) $\rightarrow$ add to collection $\rightarrow$ handle alert dialog.
-3. **View Collection**: Navigate to profile $\rightarrow$ verify book title and author appear in collection table.
-4. **Delete Book**: Click trash icon $\rightarrow$ confirm in modal (`#closeSmallModal-ok`) $\rightarrow$ handle deletion alert $\rightarrow$ verify collection is empty (`tbody tr` count is 0).
-5. **Logout**: Click Logout button $\rightarrow$ verify redirection/prompt to login (`/Currently you are not logged into the Book Store application/i`).
+Check the pinned version's documentation before adopting APIs from newer Karate or Playwright releases.

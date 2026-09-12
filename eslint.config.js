@@ -12,4 +12,14 @@ module.exports = [
     },
     rules: { 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
   },
+  {
+    files: [
+      'tests/support/karate-config.js',
+      'tests/support/karate-cleanup.js',
+    ],
+    languageOptions: {
+      globals: { karate: 'readonly', java: 'readonly', Java: 'readonly' },
+    },
+    rules: { 'no-unused-vars': ['error', { varsIgnorePattern: '^fn$' }] },
+  },
 ];

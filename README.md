@@ -55,6 +55,7 @@ npm run test:web:dry
 
 ```bash
 # Cross-browser
+npx playwright install firefox webkit
 BROWSER=firefox npm run test:web
 BROWSER=webkit npm run test:web
 
@@ -62,7 +63,9 @@ BROWSER=webkit npm run test:web
 BROWSER=chromium MOBILE=true npm run test:web
 ```
 
-> **Note on Registration Mode**: DemoQA enforces Google reCAPTCHA on `/register`. Unattended tests use API-assisted registration by default (`REGISTRATION_MODE=api`), followed by browser login through the UI. UI-only registration is accessible with `REGISTRATION_MODE=ui` when running attended or configured for testing.
+For PowerShell, set variables with `$env:BROWSER = 'firefox'` before running `npm run test:web`, or edit `.env`. CI runs Chromium; other browsers are optional local configurations.
+
+> **Registration**: DemoQA enforces reCAPTCHA on `/register`. Unattended tests use API registration (`REGISTRATION_MODE=api`) followed by UI login. For attended registration, set `REGISTRATION_MODE=ui` and `HEADLESS=false`; the test fills the form, then waits up to 150 seconds for you to complete reCAPTCHA and click Register. The unattended run does not claim UI registration coverage.
 
 ### API Tests (Karate)
 
@@ -71,7 +74,7 @@ BROWSER=chromium MOBILE=true npm run test:web
 npm run test:api
 ```
 
-Karate executes against `https://demoqa.com` following the Swagger API contract:
+Both suites use `BASE_URL` from the environment or the project-root `.env`, defaulting to `https://demoqa.com`. Existing environment variables take precedence. Karate follows the Swagger API contract:
 
 - `POST /Account/v1/User` (Register)
 - `POST /Account/v1/GenerateToken` & `POST /Account/v1/Authorized` (Login / Auth)
@@ -80,6 +83,14 @@ Karate executes against `https://demoqa.com` following the Swagger API contract:
 - `GET /Account/v1/User/{userId}` (Verify collection)
 - `DELETE /BookStore/v1/Book` (Delete book)
 - `DELETE /Account/v1/User/{userId}` (Cleanup)
+
+The API has no logout endpoint: the final access check omits the token and expects 401; it does not claim to revoke the token. The web flow verifies actual UI logout and restricted profile access.
+
+Account cleanup runs on failure as well as success. Karate's `afterScenario` hook invokes `tests/support/karate-cleanup.js`, keeping lifecycle requests out of the feature. Because Karate 1.4.1 only logs hook exceptions, the runner checks cleanup error markers and fails the overall run if cleanup fails. The CI summary also reports these failures.
+
+The runner downloads Karate 1.4.1 to `target/karate-1.4.1.jar`, verifies its pinned SHA-256 before use, and only promotes a completed download to the cache. The old root-level `karate.jar` is not used. A checksum mismatch fails with instructions to remove the affected cache file and retry.
+
+If a local network uses a custom certificate authority, configure runtime trust instead of disabling TLS verification. Node can use `NODE_EXTRA_CA_CERTS` pointing to a PEM file containing the trusted public CA certificates. On Windows, Java can use the Windows root store with `$env:JAVA_TOOL_OPTIONS = '-Djavax.net.ssl.trustStoreType=Windows-ROOT'`. These are local environment settings, not repository defaults.
 
 ---
 
@@ -104,7 +115,7 @@ npm run format
 ├── .agents/
 │   └── skills/
 │       └── demoqa-automation/
-│           └── SKILL.md            # Antigravity skill specification
+│           └── SKILL.md            # Project automation skill
 ├── .github/workflows/
 │   └── quality.yml                 # GitHub Actions CI (Node 24, Java 21, Playwright & Karate)
 ├── tests/
@@ -118,10 +129,14 @@ npm run format
 │   │   ├── authentication.steps.js # Auth & session step bindings
 │   │   └── book-collection.steps.js# Search, collection, and deletion step bindings
 │   └── support/
+│       ├── browser-actions.js      # Dialog handling and response matching
+│       ├── generate-summary.js     # CI Markdown summaries
 │       ├── hooks.js                # Playwright lifecycle, tracing, failure screenshot
+│       ├── karate-config.js        # Karate configuration and failure cleanup
+│       ├── karate-cleanup.js       # Account teardown via Karate's HTTP client
 │       ├── run-karate.js           # Automated runner for Karate standalone JAR
 │       └── test-config.js          # Environment and browser options
-├── AGENTS.md                       # Project rules & guidelines
+├── GEMINI.md                       # Existing project rules reference
 ├── cucumber.js                     # Cucumber execution and reporting configuration
 ├── eslint.config.js                # ESLint 9 configuration
 └── package.json
@@ -132,5 +147,6 @@ npm run format
 ## Reports & Artifacts
 
 - **Cucumber Reports**: Output to `reports/cucumber.html`, `reports/cucumber.json`, and `reports/cucumber.xml`. On failure, full-page screenshots are embedded directly.
+- **Dry Run**: `npm run test:web:dry` checks bindings without starting a browser or replacing the last real reports. Skipped steps are not reported as successful execution.
 - **Karate Reports**: Output to `reports/karate/karate-reports/karate-summary.html`.
 - **CI Artifacts**: Both reports are archived and uploaded on every workflow run in GitHub Actions.

@@ -65,9 +65,8 @@ After(async function ({ result }) {
     },
   );
   if (this.account?.userId && errors.some((x) => x.startsWith('Disposable'))) {
-    await this.attach(
-      `Cleanup account ID: ${this.account.userId}`,
-      'text/plain',
+    await attempt('Cleanup diagnostic attachment failed', () =>
+      this.attach(`Cleanup account ID: ${this.account.userId}`, 'text/plain'),
     );
   }
   if (this.api)

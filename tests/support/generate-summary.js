@@ -22,7 +22,7 @@ function generateKarateSummary() {
     '| :--- | :--- | :--- | :--- | :--- |',
   ];
   for (const f of data.featureSummary || []) {
-    const status = f.failed ? '❌ FAILED' : '✅ PASSED';
+    const status = f.failed ? 'FAILED' : 'PASSED';
     const duration = `${(f.durationMillis / 1000).toFixed(2)}s`;
     lines.push(
       `| \`${f.relativePath || f.name}\` | ${f.passedCount} | ${f.failedCount} | ${duration} | ${status} |`,
@@ -32,6 +32,21 @@ function generateKarateSummary() {
   lines.push(
     `**Overall**: ${data.scenariosPassed} passed, ${data.scenariosfailed} failed in ${(data.elapsedTime / 1000).toFixed(2)}s`,
   );
+  const cleanupPath = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'reports',
+    'karate',
+    'cleanup-status.json',
+  );
+  if (fs.existsSync(cleanupPath)) {
+    const cleanup = JSON.parse(fs.readFileSync(cleanupPath, 'utf8'));
+    if (cleanup.failures)
+      lines.push(
+        `**Cleanup failed for ${cleanup.failures} scenario(s). The overall run failed.**`,
+      );
+  }
   return lines.join('\n');
 }
 
@@ -47,6 +62,27 @@ function generateCucumberSummary() {
     return 'Cucumber summary report not found.';
   }
   const data = JSON.parse(fs.readFileSync(cucumberJsonPath, 'utf8'));
+  return renderCucumberSummary(data);
+}
+
+function cell(value) {
+  return String(value ?? '')
+    .replaceAll('|', '\\|')
+    .replace(/[\r\n]+/g, ' ');
+}
+
+function scenarioStatus(steps) {
+  if (!steps.length) return 'unknown';
+  const statuses = steps.map((step) => step.result?.status || 'unknown');
+  for (const status of ['failed', 'ambiguous', 'undefined', 'pending']) {
+    if (statuses.includes(status)) return status;
+  }
+  if (statuses.some((status) => !['passed', 'skipped'].includes(status)))
+    return 'unknown';
+  return statuses.includes('skipped') ? 'skipped' : 'passed';
+}
+
+function renderCucumberSummary(data) {
   const lines = [
     '### 🎭 Playwright Web Test Results',
     '',
@@ -55,21 +91,30 @@ function generateCucumberSummary() {
   ];
   let totalPassed = 0;
   let totalFailed = 0;
+  let totalSkipped = 0;
   let totalDuration = 0;
 
   for (const feature of data) {
     for (const el of feature.elements || []) {
-      if (el.keyword !== 'Scenario') continue;
+      if (
+        el.type !== 'scenario' &&
+        !['Scenario', 'Scenario Outline'].includes(el.keyword)
+      )
+        continue;
       const steps = el.steps || [];
-      const passedSteps = steps.filter(
+      const visibleSteps = steps.filter((step) => !step.hidden);
+      const passedSteps = visibleSteps.filter(
         (s) => s.result?.status === 'passed',
       ).length;
-      const failedSteps = steps.filter(
-        (s) => s.result?.status === 'failed',
+      const failedSteps = visibleSteps.filter((s) =>
+        ['failed', 'ambiguous', 'undefined', 'pending'].includes(
+          s.result?.status,
+        ),
       ).length;
-      const isFailed = failedSteps > 0;
-      if (isFailed) totalFailed++;
-      else totalPassed++;
+      const state = scenarioStatus(steps);
+      if (state === 'passed') totalPassed++;
+      else if (state === 'skipped') totalSkipped++;
+      else totalFailed++;
 
       const durationNs = steps.reduce(
         (acc, s) => acc + (s.result?.duration || 0),
@@ -77,17 +122,21 @@ function generateCucumberSummary() {
       );
       totalDuration += durationNs;
       const duration = `${(durationNs / 1e9).toFixed(2)}s`;
-      const status = isFailed ? '❌ FAILED' : '✅ PASSED';
+      const icon =
+        state === 'passed' ? '✅' : state === 'skipped' ? '⏭️' : '❌';
+      const status = `${icon} ${state.toUpperCase()}`;
 
       lines.push(
-        `| ${feature.name} | ${el.name} | ${passedSteps}/${steps.length} | ${failedSteps} | ${duration} | ${status} |`,
+        `| ${cell(feature.name)} | ${cell(el.name)} | ${passedSteps}/${visibleSteps.length} | ${failedSteps} | ${duration} | ${status} |`,
       );
     }
   }
   lines.push('');
   lines.push(
-    `**Overall**: ${totalPassed} passed, ${totalFailed} failed in ${(totalDuration / 1e9).toFixed(2)}s`,
+    `**Overall**: ${totalPassed} passed, ${totalFailed} failed/incomplete, ${totalSkipped} skipped in ${(totalDuration / 1e9).toFixed(2)}s`,
   );
+  if (totalPassed + totalFailed + totalSkipped === 0)
+    lines.push('No scenarios were reported.');
   return lines.join('\n');
 }
 
@@ -117,4 +166,8 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { generateKarateSummary, generateCucumberSummary };
+module.exports = {
+  generateKarateSummary,
+  generateCucumberSummary,
+  renderCucumberSummary,
+};

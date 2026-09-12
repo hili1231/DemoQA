@@ -1,12 +1,9 @@
-# Antigravity Rules: DemoQA Playwright & Karate Automation
+# DemoQA Playwright & Karate Automation
 
 Refer to project skill at [.agents/skills/demoqa-automation/SKILL.md](./.agents/skills/demoqa-automation/SKILL.md) for full guidelines.
 
-## Quick Summary of Rules
+Use the skill as the maintained source of framework conventions. Keep scenarios independent, use observable assertions and event-based synchronization, and guarantee visible cleanup outcomes. Lifecycle helpers belong in support code.
 
-1. **Locators & Waiting**: User-facing locators (`getByRole`, etc.); disambiguate modal buttons (`#closeSmallModal-ok`); strictly zero hardcoded sleeps (`page.waitForTimeout` forbidden).
-2. **Dialogs**: Register `page.once('dialog', ...)` before triggering actions that produce alerts.
-3. **Data Isolation**: Create unique disposable accounts per scenario (`user_${uuid}`) and tear down via API in `After` hooks.
-4. **Karate API**: Native Karate DSL only; quote embedded variables `#(var)` in JSON; validate Swagger status codes; tear down created accounts.
-5. **Support Scripts**: Place utilities in `tests/support/` (no root `scripts/` folder); guard with `if (require.main === module)`; scope `cucumber.js` require paths.
-6. **Verification Gate**: All PRs/commits must pass `npm run lint`, `npm run format:check`, and `npm test`.
+The framework supports adding scenarios and data sets as needed. Follow the user's requested scope and preserve existing coverage.
+
+Before submitting code changes, run `npm run lint`, `npm run format:check`, and the affected suites. Report any environment blocker explicitly rather than treating a dry run or old report as a passing test run.

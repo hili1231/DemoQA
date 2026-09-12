@@ -11,7 +11,7 @@
     "test:all": "npm run test:api && npm run test:web",
     "test:api": "node tests/support/run-karate.js",
     "test:web": "cucumber-js",
-    "test:web:dry": "cucumber-js --dry-run --format progress",
+    "test:web:dry": "cucumber-js --profile dry",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
